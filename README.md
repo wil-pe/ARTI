@@ -85,6 +85,7 @@ src/
 ├── tools/                   # Registry, Generator, SkillLibrary
 ├── server/                  # Hono API + WebSocket
 └── web/                     # Dashboard (HTML + JS)
+```
 
 ## How to Use the Dashboard
 
