@@ -6,6 +6,8 @@ Arcti turns a single instruction into a complete tree of decomposed tasks, execu
 
 > "Less, but better." — Dieter Rams inspired design
 
+<img width="1798" height="1042" alt="SCR-20260326-lwbi" src="https://github.com/user-attachments/assets/df312f62-b91d-474f-af51-f82c3fe5330c" />
+
 
 ## ✨ Key Features
 
