@@ -20,6 +20,7 @@ Arcti turns a single instruction into a complete tree of decomposed tasks, execu
 - **Smart verification** — hallucination detection, code sandbox execution, auto-skip for simple tasks
 - **Task redo** — retry any task (including parallel groups) with optional feedback
 - **Persistent Skill Library** — auto-save, score (0-100), and reuse generated tools across projects
+- **Flow Mode** — save completed projects as reusable templates with `{{variables}}`, re-run instantly
 
 ### LLM Providers
 
@@ -47,8 +48,12 @@ Arcti turns a single instruction into a complete tree of decomposed tasks, execu
 | `list_dir` | List directory contents |
 | `shell` | Execute shell commands (sandboxed) |
 | `eval_code` | Run TypeScript/JavaScript code (sandboxed) |
+| `screenshot` | Capture screen or region as PNG (macOS) |
+| `click` | Click at screen coordinates (macOS) |
+| `type_text` | Type text via keyboard simulation (macOS) |
+| `scroll` | Scroll at a given position (macOS) |
 
-- Multi-turn tool calling — up to 5 rounds per task
+- Multi-turn tool calling — up to 5 rounds per task (10 for computer-use tasks)
 - Automatic fallback to raw tool results if model output is empty
 
 ### Dashboard
@@ -59,6 +64,7 @@ Arcti turns a single instruction into a complete tree of decomposed tasks, execu
 - Task redo with feedback input
 - Cost estimation per project
 - Project export/import
+- Flow templates — save, browse, and run with variable substitution
 - Dark mode
 - Live LLM streaming
 - Live preview (iframe for generated HTML/CSS/JS)
@@ -91,7 +97,7 @@ Arcti turns a single instruction into a complete tree of decomposed tasks, execu
 ### Installation
 
 ```bash
-git clone https://github.com/WilliamMusic3/arcti.git
+git clone https://github.com/wil-pe/ARTI.git
 cd arcti
 bun install
 ```
@@ -199,15 +205,17 @@ src/
 │   ├── client.ts            # LLMClient + provider registry
 │   ├── router.ts            # Tier-based model routing
 │   └── providers/           # Ollama, OpenAI, Claude Code, etc.
-├── orchestrator/
-│   ├── intake.ts            # QQOQCP requirement analysis
-│   ├── decomposer.ts        # Recursive task decomposition
-│   └── scheduler.ts         # DAG scheduler (parallel execution)
 ├── tools/
 │   ├── registry.ts          # Tool registration
 │   ├── generator.ts         # Dynamic tool generation
 │   ├── skill-library.ts     # Persistent skill storage
-│   └── builtins/            # web_search, fetch_url, shell, etc.
+│   ├── flow-library.ts      # Flow template storage & instantiation
+│   └── builtins/            # web_search, fetch_url, shell, computer-use, etc.
+├── orchestrator/
+│   ├── intake.ts            # QQOQCP requirement analysis
+│   ├── decomposer.ts        # Recursive task decomposition
+│   ├── scheduler.ts         # DAG scheduler (parallel execution)
+│   └── flow-runner.ts       # Flow execution (skip intake/decompose)
 ├── bot/
 │   └── manager.ts           # Telegram & WhatsApp integration
 ├── server/
@@ -254,7 +262,8 @@ User Input
 
 ## Dashboard Guide
 
-- **Left sidebar** — Projects list + Skills library
+- **Left sidebar** — Projects list + Flows + Skills library
+- **Flows** — Browse saved templates, run with variables, save completed projects as flows
 - **Run button** — Start a new project (choose provider, set output directory)
 - **Click any task** — Full details: output, criteria, verification status, retry diff
 - **Redo button** — Retry any failed or verified task with optional feedback
@@ -263,11 +272,50 @@ User Input
 
 ---
 
+## Changelog
+
+### v0.2.0-alpha — Flow Mode + Computer Vision
+
+**Flow Mode (reusable templates)**
+- Save any completed project as a reusable flow template
+- Define variables (`{{subject}}`, `{{audience}}`, etc.) that get substituted at runtime
+- Flow library with scoring, usage tracking, stored in `~/.arcti/flows/`
+- Dashboard UI: browse flows, run with variable form, save from completed projects
+- API: `GET/POST /flows`, `GET/DELETE /flows/:name`, `POST /flows/:name/run`
+- Skips intake + decomposition — instant execution from saved task trees
+
+**Computer Vision / Screen Use**
+- 4 new tools: `screenshot`, `click`, `type_text`, `scroll`
+- macOS native: `screencapture` for screenshots, `cliclick`/AppleScript for input
+- Multi-modal support: screenshot results passed as images to vision-capable LLMs
+- Works with Anthropic, OpenAI, OpenRouter, and Ollama vision models
+- Extended tool rounds (up to 10) for computer-use tasks
+- Sandboxed with permission checks (Screen Recording + Accessibility)
+
+**Multi-modal LLM support**
+- Providers now handle image content in messages (base64 PNG)
+- OpenAI: `image_url` content blocks
+- Anthropic: native `image` source blocks
+- Ollama: `images` field for vision models (llava, etc.)
+
+### v0.1.0-alpha — Initial Release
+- Recursive task decomposition (depth 10, up to 500 tasks)
+- DAG scheduler with 8 concurrent workers
+- 3-tier model routing with auto-escalation
+- 6 LLM providers (Ollama, Claude Code, Anthropic, OpenAI, Grok, OpenRouter)
+- 7 built-in tools (web_search, fetch_url, read_file, write_file, list_dir, shell, eval_code)
+- Real-time dashboard with dark mode
+- Telegram & WhatsApp bots
+- Skill library, cross-project memory, code sandbox
+- Cost estimation, project export/import
+
+---
+
 ## Roadmap
 
 - Visual DAG graph (interactive flowchart)
 - Fully autonomous agent mode
-- More built-in tools (code analysis, image generation)
+- Google Search API integration (Serper.dev)
 - Expanded unit tests
 - Plugin system for custom providers
 
